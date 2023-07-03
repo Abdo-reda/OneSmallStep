@@ -1,14 +1,52 @@
-html,
 body {
-    margin: 0;
-    height: 100%;
-
+  margin: 0;
+  /* background-image: url("\\textures\\Background_2.png"); */
+  height: 100%;
 }
 
-
 #canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    background-image: url("BackGround.png");
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#content {
+  background-color: #1d3249;
+  margin: auto;
+  margin-top: 10%;
+  width: 70%;
+  border-radius: 1em;
+  box-shadow: 1px 6px 4px rgba(0, 0, 0, 0.511);
+  /* center the div, make it round, add drop shadow */
+}
+
+h2 {
+  color: #ff7e31;
+  padding-left: 0.6em;
+  padding-top: 1em;
+  text-shadow: 1px 4px 4px rgba(0, 0, 0, 0.505);
+  font-size: 3em;
+  font-weight: bolder;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h3 {
+  color: white;
+  padding-left: 1em;
+  text-shadow: 1px 6px 6px rgba(0, 0, 0, 0.6);
+  font-size: 2em;
+  font-weight: bold;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+button {
+  background-color: white;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 1em;
+  font-weight: bold;
+  padding: 20px 100px 20px 100px;
+  margin-left: 2em;
+  border-radius: 3em;
+  border: none;
+  margin-bottom: 2em;
 }

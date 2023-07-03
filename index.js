@@ -6,16 +6,17 @@ import { RenderPass } from "threeAddons/postprocessing/RenderPass.js";
 import { SAOPass } from "threeAddons/postprocessing/SAOPass.js";
 import { SSAOPass } from "threeAddons/postprocessing/SSAOPass.js";
 import { BloomPass } from "threeAddons/postprocessing/BloomPass.js";
+import { UnrealBloomPass } from "threeAddons/postprocessing/UnrealBloomPass.js";
 
 function createSphere(loader) {
-  const geometry = new THREE.SphereGeometry(28, 256, 256);
+  const geometry = new THREE.SphereGeometry(25, 256, 256);
 
   //----Mesh Phong Material
   //const material = new THREE.MeshPhongMaterial();
   //material.shininess = 21;
   //material.specular = 0x000000;
 
-  //--- Mesh Standard Material (PBR)
+  //--- Mesh Standard Material (PBR) //maybe
   const material = new THREE.MeshStandardMaterial();
 
   //---Reflection //add env map later ...
@@ -24,19 +25,19 @@ function createSphere(loader) {
   material.roughnessMap = roughTex;
 
   //---Diffuse
-  const diffuseTex = loader.load("textures\\EarthDiffuse_3.png");
+  const diffuseTex = loader.load("textures\\EarthDiffuse.png");
   material.map = diffuseTex;
 
   //---Displacement
   const dispTex = loader.load("textures\\EarthDisplacement.png");
   material.displacementMap = dispTex;
-  material.displacementScale = 2;
+  material.displacementScale = 1.5;
 
   //---Alpha/Transparency
   const transTex = loader.load("textures\\EarthTransparency.png");
   material.transparent = true;
   material.opacity = 1;
-  material.alphaMap = transTex;
+  // material.alphaMap = transTex;
 
   const sphereMesh = new THREE.Mesh(geometry, material);
   sphereMesh.castShadow = true;
@@ -45,7 +46,7 @@ function createSphere(loader) {
 }
 
 function wayPoint(loader) {
-  const geometry = new THREE.SphereGeometry(16, 256, 256);
+  const geometry = new THREE.SphereGeometry(1, 16, 16);
 
   //----Mesh Phong Material
   //const material = new THREE.MeshPhongMaterial();
@@ -54,15 +55,7 @@ function wayPoint(loader) {
 
   //--- Mesh Standard Material (PBR)
   const material = new THREE.MeshBasicMaterial();
-  material.roughness = 0.8;
-  material.metalness = 0.1;
-
-  const diffuseTex = loader.load("textures\\EarthDiffuse_3.png");
-  material.map = diffuseTex;
-
   const sphereMesh = new THREE.Mesh(geometry, material);
-  sphereMesh.castShadow = true;
-  sphereMesh.receiveShadow = true;
   return sphereMesh;
 }
 
@@ -103,9 +96,9 @@ function init() {
   // scene.fog = new THREE.FogExp2(0xffffff, 0.001); //0x0c1734
   // this.threeRenderer.setClearColor(scene.fog.color);
   // this.threeRenderer.setPixelRatio(window.devicePixelRatio); // For retina
-
-  const background = loader.load("textures\\BackGround.png");
+  const background = loader.load("textures\\Background_2.png");
   scene.background = background;
+  // scene.background = 0xffffff;
 
   //---------- Camera
   const camera = new THREE.PerspectiveCamera(
@@ -129,13 +122,21 @@ function init() {
   //   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
   //   renderer.toneMapping = THREE.ReinhardToneMapping;
 
-  //------ Create Sphere
+  //------ Creating Earth
+  const earthGroup = new THREE.Group();
   const sphereMesh = createSphere(loader);
   //scene.add(wireFrame);
-  scene.add(sphereMesh);
+  const wayPoint0 = wayPoint(loader);
+  const wayPoint1 = wayPoint(loader);
+  wayPoint0.position.set(21, 12, -11); //4,2,-sqrt(5) * 5 ---> this is awful, I will fix it later.
+  wayPoint1.position.set(14, 22, -2.8); //2.8,4,-1.1
+  earthGroup.add(sphereMesh);
+  earthGroup.add(wayPoint0);
+  earthGroup.add(wayPoint1);
+  scene.add(earthGroup);
 
   //------ Creating Ambient Light
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambientLight);
 
   //------ Creating Point light
@@ -151,42 +152,55 @@ function init() {
   dirlight.shadow.mapSize = new THREE.Vector2(2048, 2048);
   dirlight.shadow.radius = 4;
   dirlight.shadow.blurSamples = 25;
-  //scene.add(dirlight);
+  scene.add(dirlight);
 
   //--------- Orbit Controls
   const controls = new OrbitControls(camera, renderer.domElement);
 
   //-------- Post Processing
-  const composer = new EffectComposer(renderer);
   const renderPass = new RenderPass(scene, camera);
-  composer.addPass(renderPass);
-  const saoPass = new SAOPass(
+
+  /* const saoPass = new SAOPass(
     scene,
     camera,
     true,
     true,
     new THREE.Vector2(1024, 1024)
   );
-  //   saoPass.params.saoBias = -1;
-  //   saoPass.params.saoIntensity = 0.01;
-  //   saoPass.params.saoScale = 30;
-  //   saoPass.params.saoKernelRadius = 60;
-  //   saoPass.params.saoMinResolution = 0;
-  //   saoPass.params.saoBlur = true;
-  //   saoPass.params.saoBlurRadius = 5;
-  //   saoPass.params.saoBlurStdDev = 20;
-  //   saoPass.params.saoBlurDepthCutoff = 0.00001;
+    saoPass.params.saoBias = -1;
+    saoPass.params.saoIntensity = 0.01;
+    saoPass.params.saoScale = 30;
+    saoPass.params.saoKernelRadius = 60;
+    saoPass.params.saoMinResolution = 0;
+    saoPass.params.saoBlur = true;
+    saoPass.params.saoBlurRadius = 5;
+    saoPass.params.saoBlurStdDev = 20;
+    saoPass.params.saoBlurDepthCutoff = 0.00001; */
+
+  /*   const ssaoPass = new SSAOPass(scene, camera);
+     composer.addPass(ssaoPass);  */
+
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    1.5,
+    0.4,
+    0.85
+  );
+  // bloomPass.threshold = params.threshold;
+  // bloomPass.strength = params.strength;
+  // bloomPass.radius = params.radius;
+
+  //const outputPass = new OutputPass(THREE.ReinhardToneMapping);
+
+  const composer = new EffectComposer(renderer);
+  composer.addPass(renderPass);
   //composer.addPass(saoPass);
-
-  //   const ssaoPass = new SSAOPass(scene, camera);
-  //   composer.addPass(ssaoPass);
-
-  //   const bloomPass = new BloomPass(0.1, 24);
-  //   composer.addPass(bloomPass);
+  composer.addPass(bloomPass);
+  //composer.addPass(outputPass);
 
   function animate() {
     requestAnimationFrame(animate);
-    sphereMesh.rotation.y -= parameters.rotationSpeed;
+    earthGroup.rotation.y -= parameters.rotationSpeed;
     controls.update();
     composer.render();
   }
@@ -195,17 +209,18 @@ function init() {
   const datGUI = new DAT.GUI();
   datGUI.add(camera.position, "z", 0, 100);
   datGUI.add(parameters, "rotationSpeed", 0, 1);
-  //   datGUI.add(dirlight.shadow, "radius", 0, 100);
-  //   datGUI.add(dirlight.shadow, "bias", 0, 0.01);
+  // datGUI.add(dirlight.shadow, "radius", 0, 100);
+  // datGUI.add(dirlight.shadow, "bias", 0, 0.01);
   // datGUI.add(pointLight2.shadow, 'radius', 0, 100);
   // datGUI.add(pointLight2.shadow, 'blurSamples', 0, 100);
 
-  const saoFolder = datGUI.addFolder("Ambient Occlusion");
-  for (const key in saoPass.params) {
-    if (saoPass.params.hasOwnProperty(key)) {
-      saoFolder.add(saoPass.params, key);
-    }
-  }
+  //----- ambient occlusion properties.
+  // const saoFolder = datGUI.addFolder("Ambient Occlusion");
+  // for (const key in saoPass.params) {
+  //   if (saoPass.params.hasOwnProperty(key)) {
+  //     saoFolder.add(saoPass.params, key);
+  //   }
+  // }
 
   //------Render loop?
   animate();
